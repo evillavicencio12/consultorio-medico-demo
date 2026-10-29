@@ -1,0 +1,4 @@
+# Llave PÚBLICA de age con la que respaldar.ps1 cifra los respaldos.
+# Reemplaza la línea de abajo por tu llave (una línea que empieza con age1…).
+# La llave privada NUNCA va en el repositorio.
+PEGA_AQUI_LA_LLAVE_PUBLICA

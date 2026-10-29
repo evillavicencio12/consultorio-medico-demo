@@ -1,0 +1,65 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+# Cubre .env (dev) y un .env.produccion copiado aquí por error (vive fuera
+# del repo): ninguno se sube.
+# Ver docs/arquitectura/Entornos.md.
+.env*
+# ...salvo la plantilla sin valores reales, que sí se versiona.
+!.env.example
+
+# Permisos locales de Claude Code (rutas de esta PC, como la del .env.produccion).
+.claude/settings.local.json
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+credenciales.json
+# PDFs de prueba generados por los scripts de calibración
+scripts/output/*
+
+scripts/output/*.csv
+
+
+# Playwright (pruebas E2E)
+/test-results/
+/playwright-report/
+/blob-report/
+
+# Respaldos de la base (scripts/respaldo): nunca al repositorio, ni cifrados.
+*.dump
+*.dump.age
+*.dump.age.parcial

@@ -1,0 +1,3 @@
+# Fuentes de terceros: byte a byte como vienen del paquete (OFL.txt trae CRLF;
+# con core.autocrlf, git lo guardaría con LF y dejaría de ser la copia exacta).
+app/_fuentes/** -text

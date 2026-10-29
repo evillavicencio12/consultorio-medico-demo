@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/*
+ * Tokens del Sistema de Diseño.
+ * Fuente de verdad: docs/diseno/Sistema-de-Diseno.md
+ *
+ * Cada token de ahí está aquí con su nombre de negocio (navy, teal, rojo), no
+ * con nombres genéricos tipo "primary"/"secondary": si mañana alguien pega
+ * markup de Stitch —que trae su propia paleta Material— el choque se ve al
+ * instante en vez de colarse.
+ *
+ * NO hay modo oscuro. El scaffold de Next traía un bloque
+ * `prefers-color-scheme: dark` que invertía los colores; se quitó porque el
+ * sistema de diseño define una sola paleta, pensada para leerse igual en
+ * pantalla y en papel impreso.
+ */
+@theme {
+  /* --- Color --- */
+  --color-navy: #163a5b;          /* Texto, encabezados, iconografía por defecto */
+  --color-navy-tint: #e8eef2;     /* Fondo de bloques de datos fijos/no editables */
+  --color-teal: #2e9c97;          /* Botones primarios, estados activos, check válido */
+  --color-teal-hover: #237872;    /* Botón al presionar */
+  --color-teal-tint: #e3f3f2;     /* Fondo de etiquetas/badges suaves */
+  --color-rojo: #d64545;          /* EXCLUSIVO alergias y errores de validación */
+  --color-rojo-tint: #fbeaea;     /* Fondo de mensajes de error */
+  --color-texto: #163a5b;         /* Alias de navy para texto de cuerpo */
+  --color-texto-secundario: #5b7185;
+  --color-borde: #c9d3db;         /* Borde de input en reposo */
+  --color-superficie: #ffffff;
+
+  /*
+   * IBM Plex Sans y Mono, cargadas con next/font/local en app/layout.tsx desde
+   * app/_fuentes/ibm-plex/: sin petición a Google, ni en el build. Nunca Inter,
+   * nunca Geist, nunca Arial — ver Sistema-de-Diseno.md.
+   */
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* --- Radios: 10px tarjetas, 8px inputs y botones --- */
+  --radius-tarjeta: 10px;
+  --radius-control: 8px;
+
+  /* --- Sombra teñida de navy, nunca negro puro --- */
+  --shadow-clinica: 0 1px 3px rgba(22, 58, 91, 0.08);
+
+  /* --- Navigation rail (Sistema-de-Diseno.md) --- */
+  --spacing-rail-expandido: 240px;
+  --spacing-rail-colapsado: 72px;
+}
+
+@layer base {
+  html {
+    /* Sin esto, `font-family` cae en el serif del navegador si next/font falla. */
+    font-family: var(--font-sans);
+  }
+
+  body {
+    background-color: var(--color-navy-tint);
+    color: var(--color-texto);
+  }
+
+  /*
+   * Foco visible en todo elemento interactivo. No es decorativo: RNF-05 (ERS)
+   * pide una interfaz usable, y el borde de foco es lo que permite recorrer el
+   * formulario con el teclado — que es como se llena una consulta rápido.
+   */
+  :focus-visible {
+    outline: 2px solid var(--color-navy);
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * Identificadores en IBM Plex Mono: número de receta, código CIE-10, cédula.
+ * Comunica "esto es un código", no prosa, y alinea columnas de números.
+ */
+@utility identificador {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

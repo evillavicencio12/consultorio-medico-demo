@@ -1,0 +1,63 @@
+{
+  "name": "consultorio-medico-demo",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "verificar:bundle": "node --env-file-if-exists=.env scripts/verificar-bundle-sin-secretos.mjs",
+    "verificar:rutas": "node scripts/verificar-rutas-dinamicas.mjs",
+    "verificar:enlaces": "node scripts/verificar-enlaces.mjs",
+    "verificar:sesion-revocada": "node --env-file=.env scripts/verificar-sesion-revocada.mjs",
+    "test:e2e": "playwright test",
+    "entorno": "node scripts/entorno.mjs",
+    "sembrar:pacientes": "node --env-file=.env scripts/sembrar-pacientes-sinteticos.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:pdf": "vitest run tests/pdf-module.test.ts",
+    "test:pacientes": "vitest run tests/pacientes.test.ts",
+    "test:fila": "vitest run tests/fila-paciente.test.tsx",
+    "test:formulario": "vitest run tests/paciente-formulario.test.ts",
+    "test:formulario-ui": "vitest run tests/formulario-paciente.test.tsx",
+    "test:linea-tiempo": "vitest run tests/linea-tiempo.test.tsx",
+    "test:consulta": "vitest run tests/consulta.test.ts",
+    "test:consulta-ui": "vitest run tests/formulario-consulta.test.tsx",
+    "test:texto-plano": "vitest run tests/texto-plano.test.ts",
+    "test:receta": "vitest run tests/receta.test.ts",
+    "test:espacio": "vitest run tests/espacio-plantilla.test.ts",
+    "test:hoy": "vitest run --project hoy",
+    "test:menor-edad": "vitest run tests/regla-menor-edad.test.ts"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.3",
+    "googleapis": "^175.0.0",
+    "lucide-react": "^1.55.0",
+    "next": "16.4.2",
+    "papaparse": "^5.7.0",
+    "pdf-lib": "^1.17.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@playwright/test": "1.64.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "24.19.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.2",
+    "pdfjs-dist": "^6.4.299",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vitest": "5.0.5"
+  }
+}

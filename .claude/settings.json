@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Bash(cat *.env*)",
+      "Bash(type *.env*)",
+      "Bash(head *.env*)",
+      "Bash(tail *.env*)",
+      "Bash(less *.env*)",
+      "Bash(more *.env*)",
+      "Bash(grep *.env.produccion*)",
+      "Bash(rg *.env.produccion*)",
+      "Bash(grep -r*)",
+      "Bash(grep -R*)",
+      "Bash(grep --recursive*)",
+      "Bash(grep -nr*)",
+      "Bash(grep -ir*)",
+      "Bash(grep -lr*)",
+      "Bash(grep -inr*)",
+      "Bash(grep * -r*)",
+      "Bash(grep * -R*)",
+      "Bash(egrep -r*)",
+      "Bash(fgrep -r*)",
+      "Bash(rg *--no-ignore*)",
+      "Bash(rg *-uu*)",
+      "Bash(findstr */s*)",
+      "Bash(findstr */S*)",
+      "Bash(*Get-ChildItem*-Recurse*)",
+      "Bash(*gci *-r*)",
+      "Bash(find * -exec grep*)",
+      "Bash(*xargs grep*)"
+    ],
+    "ask": [
+      "Bash(*.env.produccion*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/bloquear-busqueda-recursiva.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,84 @@
+# Dependabot: actualizaciones semanales y agrupadas. Las decisiones y la
+# configuración que va en Settings están en
+# docs/arquitectura/Verificacion-y-CI.md.
+#
+# Sus PR pasan por el CI (ci.yml), que no necesita secretos. La revisión con
+# Claude no corre en ellos (revision-claude.yml los excluye).
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Guayaquil
+    # No proponer versiones con menos de una semana publicadas: es la ventana
+    # que aprovechan los paquetes comprometidos en npm.
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    ignore:
+      # El runtime está fijo en Node 24 (engines.node, CI y Vercel): unos tipos
+      # de Node 25+ dejarían usar APIs que no existen en producción.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # ESLint 10 o mayor: tres plugins de eslint-config-next (react, jsx-a11y,
+      # import) no la declaran y npm los instala forzados. Con `versions` (no
+      # `update-types`) también corta los arreglos de seguridad que solo existan
+      # en 10+ (los de 9.x siguen llegando); aceptado, ESLint es solo de
+      # desarrollo. Se reactiva con un PR que quita esta regla y sube ESLint a
+      # mano, con la comparación de Verificacion-y-CI.md. Si un PR del
+      # grupo `next` exige ESLint 10+, esa es la señal para hacerlo.
+      - dependency-name: "eslint"
+        versions: [">=10.0.0"]
+    groups:
+      # Next y su configuración de lint suben juntos, mayor incluida: separados
+      # rompen el lint (eslint-config-next sigue la versión de next).
+      next:
+        patterns: ["next", "eslint-config-next"]
+      next-seguridad:
+        applies-to: security-updates
+        patterns: ["next", "eslint-config-next"]
+      # react-dom exige exactamente su misma versión de react.
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+      react-seguridad:
+        applies-to: security-updates
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+      produccion:
+        dependency-type: production
+        update-types: [minor, patch]
+        # En 0.x, Dependabot llama "menor" a 0.N → 0.N+1, que puede romper:
+        # @supabase/ssr toca la sesión (proxy.ts, clienteConSesion). Van solos.
+        exclude-patterns: ["@supabase/ssr", "server-only"]
+      desarrollo:
+        dependency-type: development
+        update-types: [minor, patch]
+    # Lo que no cae en un grupo —las mayores fuera de Next y React, y los 0.x
+    # excluidos— llega en un PR por dependencia, para revisarlo a mano.
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Guayaquil
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      # Fijadas por SHA en los flujos: Dependabot actualiza el SHA y el
+      # comentario de la versión. Las mayores van solas: un cambio de inputs en
+      # claude-code-action no se valida en el CI (la revisión no corre ahí).
+      actions:
+        patterns: ["*"]
+        update-types: [minor, patch]

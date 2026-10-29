@@ -1,0 +1,49 @@
+-- ============================================================================
+-- `consultas.numero_receta` pasa a admitir NULL.
+--
+-- POR QUÉ (el hallazgo, al construir el formulario de receta en la Fase 4B):
+--
+-- La columna era `not null default nextval('numero_receta_seq')`, así que el
+-- número se asignaba al INSERTAR LA CONSULTA, no al emitir la receta. Como una
+-- consulta puede no llevar receta —un control, una revisión; así lo asume la
+-- línea de tiempo de la Fase 3, que esconde el botón de receta cuando no hay
+-- medicamentos— cada una de esas consultas se llevaba por delante un número del
+-- correlativo que no iba a aparecer en ningún papel.
+--
+-- El resultado son huecos en la numeración impresa: emitir la receta #2 y que
+-- la siguiente sea la #5 porque entre medio hubo dos controles. Es exactamente
+-- lo que ADR-002 se esforzó en evitar cuando fijó `cache 1` en la secuencia
+-- ("con caché mayor, cada conexión reserva un bloque y los que no usa se
+-- pierden, dejando huecos en el correlativo"). El esquema abría por un lado el
+-- agujero que la secuencia cerraba por el otro.
+--
+-- POR QUÉ AHORA Y NO COMO DEUDA DOCUMENTADA: `consultas` tiene 0 filas. Migrar
+-- hoy es un `alter column`; migrar después de que la doctora registre consultas
+-- reales obliga a decidir qué hacer con los números ya emitidos —y un número de
+-- receta impreso en papel no se puede reasignar—. Es el momento más barato que
+-- va a haber, y la doctora empieza a registrar en poco tiempo.
+--
+-- CÓMO QUEDA EL CONTRATO:
+--
+--   * Consulta CON medicamentos  -> se OMITE la columna al insertar, el DEFAULT
+--                                   dispara `nextval` y toma el número.
+--   * Consulta SIN medicamentos  -> se inserta `numero_receta = null`
+--                                   explícitamente y la secuencia no se toca.
+--
+-- El DEFAULT se conserva a propósito: es lo que permite que la asignación siga
+-- siendo atómica y del lado de Postgres, sin un viaje extra a pedir el número
+-- ni una función nueva. La contrapartida es que "omitir la columna" significa
+-- "quiero un número": quien escriba un INSERT nuevo tiene que decidirlo a
+-- conciencia. En la aplicación eso vive en un solo sitio —`lib/consultas/
+-- guardado.ts`, que arma la fila mirando si hay medicamentos— para que no se
+-- pueda equivocar por descuido.
+--
+-- EL UNIQUE SE QUEDA, y sigue funcionando: en SQL un UNIQUE no aplica a los
+-- NULL, así que admite tantas consultas sin receta como haga falta y sigue
+-- impidiendo dos recetas con el mismo número. Es la misma propiedad que en su
+-- día dejó pasar 82 pacientes duplicados sin cédula (ver
+-- la migración inicial de datos); aquí es justo lo que se busca.
+-- ============================================================================
+
+alter table public.consultas
+  alter column numero_receta drop not null;

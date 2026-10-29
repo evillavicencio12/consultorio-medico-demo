@@ -1,0 +1,12 @@
+[
+  {
+    "codigo": "U071",
+    "descripcion": "COVID-19, virus identificado",
+    "fuente": "OMS, Orientación internacional para la certificación y clasificación (codificación) del COVID-19 como causa de muerte, 20 de abril de 2020 (WHO/HQ/DDI/DNA/CAT). Pedido por la doctora el 17 de octubre de 2026."
+  },
+  {
+    "codigo": "U072",
+    "descripcion": "COVID-19, virus no identificado",
+    "fuente": "OMS, Orientación internacional para la certificación y clasificación (codificación) del COVID-19 como causa de muerte, 20 de abril de 2020 (WHO/HQ/DDI/DNA/CAT). Pedido por la doctora el 17 de octubre de 2026."
+  }
+]

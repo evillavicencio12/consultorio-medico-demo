@@ -1,0 +1,97 @@
+# CI: lo que tiene que estar en verde para entrar a master
+# (docs/arquitectura/Verificacion-y-CI.md).
+#
+# No usa NINGÚN secreto: ni de producción (regla fija, nunca llegan a GitHub
+# Actions) ni de dev. Sin `.env`, las pruebas contra dev se saltan solas y el
+# build no necesita las claves. Los valores `centinela-ci-…` del job son
+# FALSOS a propósito: cebos para verificar:bundle, no secretos.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+# Lo mínimo: leer el código. Nada escribe en el repositorio ni en el PR.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # Un push nuevo a un PR cancela la corrida anterior; en master, nunca.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      # Centinelas para verificar:bundle: valores FALSOS y marcados, NO secretos.
+      # Una sola vez, a nivel de job, para que el build y la búsqueda vean los
+      # mismos. Cada nombre va también con `NEXT_PUBLIC_` delante: renombrar una
+      # clave así es el error que Next convierte en fuga. Si alguno aparece en
+      # .next/static, el paso falla. No llevan NEXT_PUBLIC_SUPABASE_URL, así que
+      # las pruebas contra dev se siguen saltando.
+      # Las dos Service Account falsas llevan `# gitleaks:allow`: su private_key
+      # es un texto marcado CENTINELA/NOESSECRETO, pero gitleaks lo ve como una
+      # clave privada. Solo esas dos líneas; nada más queda exceptuado.
+      SUPABASE_SECRET_KEY: centinela-ci-supabase-secret
+      SUPABASE_SERVICE_ROLE_KEY: centinela-ci-supabase-service-role
+      GOOGLE_SERVICE_ACCOUNT_KEY_BASE64: eyJjbGllbnRfZW1haWwiOiJjZW50aW5lbGEtY2lAbm8tZXMtc2VjcmV0by5pbnZhbGlkIiwicHJpdmF0ZV9rZXkiOiItLS0tLUJFR0lOIFBSSVZBVEUgS0VZLS0tLS1cbk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ2NhYmVjZXJhSWd1YWxQYXJhVG9kYXNcbkNFTlRJTkVMQUNJTk9FU1NFQ1JFVE9zZWd1bmRhTGluZWFEZWxDdWVycG9RdWVJZGVudGlmaWNhTGFDbGF2ZTAxMjNcbi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS1cbiJ9 # gitleaks:allow
+      GOOGLE_SHEET_ID_MEDICAMENTOS: centinela-ci-sheet-medicamentos
+      NEXT_PUBLIC_SUPABASE_SECRET_KEY: centinela-ci-public-supabase-secret
+      NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY: centinela-ci-public-supabase-service-role
+      NEXT_PUBLIC_GOOGLE_SERVICE_ACCOUNT_KEY_BASE64: eyJjbGllbnRfZW1haWwiOiJjZW50aW5lbGEtY2ktcHVibGljQG5vLWVzLXNlY3JldG8uaW52YWxpZCIsInByaXZhdGVfa2V5IjoiLS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tXG5NSUlFdlFJQkFEQU5CZ2txaGtpRzl3MEJBUUVGQUFTQ0JLY3dnZ1NqQWdFQUFvSUJBUUNjYWJlY2VyYUlndWFsUGFyYVRvZGFzXG5DRU5USU5FTEFDSVBVQkxJQ0FOT0VTU0VDUkVUT3NlZ3VuZGFMaW5lYURlbEN1ZXJwb1F1ZUlkZW50aWZpY2EwMTIzXG4tLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tXG4ifQ== # gitleaks:allow
+      NEXT_PUBLIC_GOOGLE_SHEET_ID_MEDICAMENTOS: centinela-ci-public-sheet-medicamentos
+    steps:
+      # Actions fijadas por SHA (la etiqueta se puede mover; el SHA no),
+      # verificado contra el tag oficial. Las actualiza Dependabot.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # La versión sale de `engines.node` (package.json): una sola fuente,
+      # la misma que lee Vercel.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      - run: npm ci
+
+      # --omit=dev: las 5 altas de la cadena de lint son un riesgo aceptado
+      # (Seguridad-OWASP.md). --audit-level=high: un aviso alto o crítico en lo
+      # que llega a producción bloquea; los bajos y moderados no frenan PR sin
+      # relación, y los cubren las alertas de Dependabot. Va primero: si falla,
+      # que sea antes del build.
+      - name: npm audit (dependencias de producción, alto o crítico)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Lint
+        run: npm run lint
+
+      # `LayoutProps`, `PageProps` y compañía los genera Next: sin esto, tsc
+      # falla en un checkout limpio (antes del build no existen).
+      - name: Tipos de rutas (next typegen)
+        run: npx next typegen
+
+      - name: TypeScript
+        run: npx tsc --noEmit
+
+      - name: Pruebas (Vitest)
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Rutas dinámicas (prerender-manifest.json)
+        run: npm run verificar:rutas
+
+      - name: Ningún secreto en el bundle
+        run: npm run verificar:bundle
+
+      - name: Enlaces de la documentación
+        run: npm run verificar:enlaces
+
