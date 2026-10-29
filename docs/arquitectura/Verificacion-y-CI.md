@@ -62,6 +62,8 @@ Un ruleset sobre `master` **sin bypass para administradores**: PR obligatorio, e
 
 Semanal, para `npm` y `github-actions`. Sus PR pasan por el CI.
 
+En la demo pública las actualizaciones de versión están apagadas con `open-pull-requests-limit: 0` en las dos entradas: la demo es una foto fija del repo privado. El archivo se conserva igual al del privado en todo lo demás. Las alertas y actualizaciones de seguridad se manejan desde Settings; ese límite no las afecta.
+
 - **Agrupado**: un PR con lo menor y los parches de producción, otro con los de desarrollo, otro con las actions.
 - **Juntos, con mayor incluida, también en las actualizaciones de seguridad**: `next` + `eslint-config-next` (separados rompen el lint) y `react` + `react-dom` + sus tipos (react-dom exige su misma versión de react).
 - **Solos, para revisarlos a mano**: las versiones mayores fuera de esos dos grupos, las mayores de actions y `@supabase/ssr` y `server-only`, que están en 0.x —ahí Dependabot llama "menor" a un salto que puede romper, y `@supabase/ssr` toca la sesión—.

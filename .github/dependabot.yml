@@ -4,6 +4,11 @@
 #
 # Sus PR pasan por el CI (ci.yml), que no necesita secretos. La revisión con
 # Claude no corre en ellos (revision-claude.yml los excluye).
+#
+# En este repo (la demo pública) las actualizaciones de versión están
+# apagadas: open-pull-requests-limit: 0 en cada entrada, porque la demo es una
+# foto fija del repo privado. El límite no afecta a las actualizaciones de
+# seguridad, que tienen su propio límite y se manejan desde Settings.
 
 version: 2
 updates:
@@ -19,7 +24,7 @@ updates:
     cooldown:
       default-days: 7
       semver-major-days: 14
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     commit-message:
       prefix: chore
       include: scope
@@ -72,6 +77,7 @@ updates:
       timezone: America/Guayaquil
     cooldown:
       default-days: 7
+    open-pull-requests-limit: 0
     commit-message:
       prefix: chore
       include: scope
